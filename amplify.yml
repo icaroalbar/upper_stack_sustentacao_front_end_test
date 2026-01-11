@@ -1,0 +1,22 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - nvm install 20
+        - nvm use 20
+        - npm install -g yarn
+        - yarn cache clean
+        - yarn
+    build:
+      commands:
+        - env | grep -e NEXTAUTH_ -e NEXT_PUBLIC_ -e URL_ >> .env.production
+        - yarn build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - "**/*"
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*
