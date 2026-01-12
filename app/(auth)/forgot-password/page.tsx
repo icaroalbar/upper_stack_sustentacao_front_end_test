@@ -23,9 +23,14 @@ import axios from "axios";
 import { API_BASE_URL } from "@/shared/api";
 
 const formSchema = z.object({
-  email: z.string().min(2, {
-    message: "E-mail é obrigatório.",
-  }),
+  email: z
+    .string()
+    .min(1, {
+      message: "E-mail é obrigatório.",
+    })
+    .email({
+      message: "E-mail inválido.",
+    }),
 });
 
 export default function ForgotPassword() {

@@ -22,9 +22,14 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  username: z.string().min(2, {
-    message: "E-mail é obrigatório.",
-  }),
+  username: z
+    .string()
+    .min(1, {
+      message: "E-mail é obrigatório.",
+    })
+    .email({
+      message: "E-mail inválido.",
+    }),
 
   password: z.string().min(2, {
     message: "A senha é obrigatória.",
