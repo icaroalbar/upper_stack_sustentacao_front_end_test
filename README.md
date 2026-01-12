@@ -37,12 +37,29 @@ TEST_USER_PASSWORD=sua_senha \
 yarn test:e2e
 ```
 
-If Playwright fails to launch Chromium on WSL2, install a system Chromium and
-export its path:
+If Playwright fails to launch Chromium with errors like
+`setsockopt: Operation not permitted`, prefer a non-snap system Chromium and
+point Playwright to it (or set `CHROME_BIN`):
 
 ```bash
-sudo apt install -y chromium-browser
-export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium \
+yarn test:e2e
+```
+
+Snap-based Chromium (`/usr/bin/chromium-browser`) can fail inside containers
+with `snap-confine` permission errors. Install a non-snap binary (apt Chromium
+or Google Chrome) and export its path:
+
+```bash
+sudo apt install -y chromium
+export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
+```
+
+If the environment still blocks Chromium sandboxing, you can switch the test
+browser:
+
+```bash
+PLAYWRIGHT_BROWSER=firefox yarn test:e2e
 ```
 
 ## Learn More
