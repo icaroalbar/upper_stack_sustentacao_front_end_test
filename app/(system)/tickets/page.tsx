@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import useSWR from "swr";
 import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { Button } from "@/components/ui/button";
 import Icon, { IconNames } from "@/components/ui/icons";
@@ -91,6 +91,7 @@ function getGroupIdFromSession(
 
 export default function Tickets() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [dialogConfimationMessage, setDialogConfimationMessage] =
@@ -135,12 +136,21 @@ export default function Tickets() {
     setPage(1);
   }, [trimmedSearch]);
 
+  const shouldRedirectToFirstAccess =
+    status !== "loading" && session?.challengeName === "NEW_PASSWORD_REQUIRED";
+
+  useEffect(() => {
+    if (shouldRedirectToFirstAccess) {
+      router.replace("/first-access");
+    }
+  }, [shouldRedirectToFirstAccess, router]);
+
   if (status === "loading") {
     return <div>Carregando...</div>;
   }
 
-  if (session?.challengeName === "NEW_PASSWORD_REQUIRED") {
-    redirect("/first-access");
+  if (shouldRedirectToFirstAccess) {
+    return <div>Redirecionando...</div>;
   }
 
   const embeddedTickets: TicketsApiTicket[] = ticketsData?.tasks ?? [];
