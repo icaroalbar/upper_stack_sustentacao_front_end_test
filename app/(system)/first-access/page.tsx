@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icons";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { signIn, useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import { API_BASE_URL } from "@/shared/api";
 
@@ -35,6 +35,7 @@ const formSchema = z.object({
 export default function FirstAccess() {
   const [disableForm, setdisableForm] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,13 +46,21 @@ export default function FirstAccess() {
   });
 
   const { data: session, status } = useSession();
+  const shouldRedirectToTickets =
+    status !== "loading" && session?.challengeName !== "NEW_PASSWORD_REQUIRED";
+
+  useEffect(() => {
+    if (shouldRedirectToTickets) {
+      router.replace("/tickets");
+    }
+  }, [shouldRedirectToTickets, router]);
 
   if (status === "loading") {
     return <div>Carregando...</div>;
   }
 
-  if (session?.challengeName !== "NEW_PASSWORD_REQUIRED") {
-    redirect("/tickets");
+  if (shouldRedirectToTickets) {
+    return <div>Redirecionando...</div>;
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -89,7 +98,7 @@ export default function FirstAccess() {
         redirect: false,
       });
 
-      redirect("/ticket");
+      router.replace("/tickets");
     } catch (error) {
       console.error("Erro na requisição:", error);
 
