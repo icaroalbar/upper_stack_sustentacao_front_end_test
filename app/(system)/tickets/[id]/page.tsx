@@ -156,11 +156,7 @@ export default function TicketDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const accessToken = session?.accessToken as string | undefined;
 
-  const {
-    data: detailsResponse,
-    error: ticketError,
-    isLoading: ticketLoading,
-  } = useSWR<TicketDetailsResponse>(
+  const { data: detailsResponse } = useSWR<TicketDetailsResponse>(
     id && accessToken
       ? [`${TICKETS_DETAILS_API_URL}/${id}/details`, accessToken]
       : null,

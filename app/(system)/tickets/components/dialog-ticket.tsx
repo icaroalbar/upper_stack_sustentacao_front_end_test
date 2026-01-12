@@ -34,6 +34,7 @@ import useSWR from "swr";
 import { demand, demandValues, priority } from "../priority";
 import { getInitials } from "@/shared/get-initials";
 import { API_BASE_URL } from "@/shared/api";
+import type { Session } from "next-auth";
 
 type TicketUser = {
   id: string;
@@ -64,7 +65,7 @@ type UsersApiResponse = {
 };
 
 type DialogTicketProps = {
-  session: any;
+  session: Session | null;
   isAdmin: boolean;
   onTicketCreated?: (result: { success: boolean; message: string }) => void;
 };
@@ -88,6 +89,13 @@ const formSchema = z.object({
 });
 
 type TicketFormValues = z.infer<typeof formSchema>;
+
+type TicketCreateResponse = {
+  ticket?: {
+    id?: string;
+  };
+  id?: string;
+};
 
 const API_URL = API_BASE_URL;
 const USERS_API_URL =
@@ -250,7 +258,7 @@ export default function DialogTicket({
             requestType: values.type,
           };
 
-      const newTicket = await axios.post(ticketUrl, payload, {
+      const newTicket = await axios.post<TicketCreateResponse>(ticketUrl, payload, {
         headers: {
           Authorization: accessToken,
         },
@@ -259,8 +267,7 @@ export default function DialogTicket({
       // A API de criação de tickets passou a responder no formato:
       // { ticket: { id, ... }, _links: { ... } }
       // Mantemos compatibilidade com o formato antigo (data.id) como fallback.
-      const createdTicketId =
-        (newTicket.data as any)?.ticket?.id ?? (newTicket.data as any)?.id;
+      const createdTicketId = newTicket.data.ticket?.id ?? newTicket.data.id;
 
       if (
         createdTicketId &&
@@ -289,12 +296,15 @@ export default function DialogTicket({
         message:
           "Ticket enviado com sucesso! Em breve, nossa equipe entrará em contato.",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
 
-      const message =
-        error?.response?.data?.error?.message ??
-        "Ocorreu um erro ao enviar o ticket. Tente novamente mais tarde.";
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.error?.message ??
+          error.response?.data?.error ??
+          error.response?.data?.message ??
+          "Ocorreu um erro ao enviar o ticket. Tente novamente mais tarde."
+        : "Ocorreu um erro ao enviar o ticket. Tente novamente mais tarde.";
 
       onTicketCreated?.({
         success: false,
