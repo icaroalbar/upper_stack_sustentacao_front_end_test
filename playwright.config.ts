@@ -49,6 +49,32 @@ const chromiumExecutable =
   envChromiumExecutable ||
   resolveSystemChromiumExecutable() ||
   resolvePlaywrightChromiumExecutable();
+const crashpadArgs = [
+  "--disable-crashpad",
+  "--disable-crashpad-for-testing",
+  "--disable-crash-reporter",
+  "--disable-breakpad",
+  "--disable-features=Crashpad",
+  "--no-crash-upload",
+];
+const allProjects = [
+  {
+    name: "chromium",
+    use: {
+      ...devices["Desktop Chrome"],
+      chromiumSandbox: false,
+      launchOptions: {
+        executablePath: chromiumExecutable,
+        args: crashpadArgs,
+      },
+    },
+  },
+  { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+];
+const selectedBrowser = process.env.PLAYWRIGHT_BROWSER;
+const projects = selectedBrowser
+  ? allProjects.filter((project) => project.name === selectedBrowser)
+  : allProjects.filter((project) => project.name === "chromium");
 
 if (fs.existsSync(localAudioLibPath)) {
   process.env.LD_LIBRARY_PATH = [
@@ -72,18 +98,8 @@ export default defineConfig({
   use: {
     baseURL,
     headless: true,
-    chromiumSandbox: false,
-    launchOptions: {
-      executablePath: chromiumExecutable,
-      args: ["--disable-crash-reporter", "--disable-crashpad"],
-    },
     screenshot: "only-on-failure",
     trace: "off",
   },
-  projects: [
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-    },
-  ],
+  projects,
 });

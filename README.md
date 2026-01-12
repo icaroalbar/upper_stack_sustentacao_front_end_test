@@ -55,6 +55,13 @@ sudo apt install -y chromium
 export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 ```
 
+If the environment still blocks Chromium sandboxing, you can switch the test
+browser:
+
+```bash
+PLAYWRIGHT_BROWSER=firefox yarn test:e2e
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

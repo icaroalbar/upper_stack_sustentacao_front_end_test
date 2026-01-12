@@ -82,6 +82,9 @@ usar um Chromium do sistema (não-snap) via `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
 e registrar isso no relatório de QA. Snap pode falhar com `snap-confine` em
 ambientes restritos.
 
+Se o sandbox do Chromium continuar bloqueado, execute os testes com
+`PLAYWRIGHT_BROWSER=firefox` e registre a troca no relatório.
+
 ---
 
 ## 🔐 Template 3 – QA de Autenticação
