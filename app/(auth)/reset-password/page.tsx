@@ -22,15 +22,28 @@ import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { API_BASE_URL } from "@/shared/api";
 
-const formSchema = z.object({
-  password: z.string().min(2, {
-    message: "A senha é obrigatória.",
-  }),
+const passwordPolicyRegex =
+  /^(?=.*[A-Z])(?=(?:.*\d){3,})(?=.*[^A-Za-z0-9]).{8,}$/;
 
-  confirmPassword: z.string().min(2, {
-    message: "A confirmação de senha é obrigatória.",
-  }),
-});
+const formSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, {
+        message: "A senha deve ter no mínimo 8 caracteres.",
+      })
+      .regex(passwordPolicyRegex, {
+        message:
+          "A senha deve conter pelo menos 1 letra maiúscula, 3 números e 1 caractere especial.",
+      }),
+    confirmPassword: z.string().min(1, {
+      message: "A confirmação de senha é obrigatória.",
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "As senhas não conferem.",
+  });
 
 export default function ResetPassword() {
   const [disableForm, setdisableForm] = useState<boolean>(false);
@@ -50,14 +63,6 @@ export default function ResetPassword() {
   const code = searchParams.get("code");
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (values.password !== values.confirmPassword) {
-      setErrorMessage("As senhas não conferem.");
-      setTimeout(() => {
-        setErrorMessage(null);
-      }, 3000);
-      return;
-    }
-
     setdisableForm(true);
     try {
       await axios.post(
